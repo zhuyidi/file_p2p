@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="file_p2p" target="1.5" />
+      <module name="file_p2p" target="6" />
     </bytecodeTargetLevel>
   </component>
 </project>
