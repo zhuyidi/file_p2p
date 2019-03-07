@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ResourceBundle;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -33,6 +34,7 @@ public class ServerCenter {
             serverSocket = new ServerSocket(33000);
         } catch (IOException e) {
             LOGGER.error("server启动失败！");
+            close();
         }
     }
 
@@ -41,6 +43,26 @@ public class ServerCenter {
 
         while (true) {
             // 等待客户端的连接
+            String hostAddress = null;
+            try {
+                Socket socket = serverSocket.accept();
+                hostAddress = socket.getLocalAddress().getHostAddress();
+                LOGGER.info("客户端：" + hostAddress + "连接成功");
+                THREAD_POOL_EXECUTOR.execute(new ServerThread(socket));
+            } catch (IOException e) {
+                LOGGER.error("客户端连接异常！客户端IP：" + hostAddress);
+            }
+        }
+    }
+
+    private static void close() {
+        try {
+            if (serverSocket != null) {
+                serverSocket.close();
+            }
+            THREAD_POOL_EXECUTOR.shutdown();
+        } catch (IOException e) {
+            LOGGER.error("服务端资源异常关闭！");
         }
     }
 }
