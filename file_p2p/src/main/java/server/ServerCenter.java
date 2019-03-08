@@ -2,6 +2,7 @@ package server;
 
 import com.sun.istack.internal.NotNull;
 import org.apache.log4j.Logger;
+import util.CloseUtil;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -56,13 +57,7 @@ public class ServerCenter {
     }
 
     private static void close() {
-        try {
-            if (serverSocket != null) {
-                serverSocket.close();
-            }
-            THREAD_POOL_EXECUTOR.shutdown();
-        } catch (IOException e) {
-            LOGGER.error("服务端资源异常关闭！");
-        }
+        CloseUtil.closeServerSocket(serverSocket);
+        CloseUtil.closeThreadPool(THREAD_POOL_EXECUTOR);
     }
 }

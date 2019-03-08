@@ -18,7 +18,7 @@ public class ClientCenter {
         try {
             socket = new Socket("127.0.0.1", 33000);
             hostAddress = socket.getLocalAddress().getHostAddress();
-            new Thread(new ClientThread(socket));
+            new Thread(new ClientThread(socket)).start();
         } catch (IOException e) {
             LOGGER.error("客户端：" + hostAddress + "连接服务端失败！");
         }
