@@ -56,6 +56,7 @@ public class ServerThread implements Runnable {
         try {
             file = new RandomAccessFile(filePath, "rw");
             fileLen = file.length();
+            LOGGER.info("服务端传送文件：" + fileName + ", 客户端信息：" + hostAdress);
         } catch (Exception e) {
             LOGGER.error("服务端打开文件流失败, 客户端信息：" + hostAdress);
             return;

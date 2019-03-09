@@ -7,7 +7,6 @@ import util.CloseUtil;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ResourceBundle;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -20,8 +19,6 @@ import java.util.concurrent.TimeUnit;
 public class ServerCenter {
     private static final Logger LOGGER = Logger.getLogger(ServerCenter.class);
     private static ServerSocket serverSocket;
-    private static final String SEND_PATH = ResourceBundle.getBundle("file-config").getString("sendPath");
-    private static final String TARGET_PATH = ResourceBundle.getBundle("file-config").getString("targetPath");
     private static final ThreadPoolExecutor THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(1, 5, 30, TimeUnit.MINUTES,
             new ArrayBlockingQueue<Runnable>(20), new ThreadFactory() {
         @Override
