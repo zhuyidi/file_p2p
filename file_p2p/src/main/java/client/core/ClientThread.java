@@ -1,5 +1,6 @@
-package client;
+package client.core;
 
+import client.receive.ReceiveThread;
 import com.sun.istack.internal.NotNull;
 import org.apache.log4j.Logger;
 import util.CloseUtil;
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeUnit;
  * by yidi on 3/8/19
  */
 
-// ClientThread要建立一个临时服务端，等待其他客户端的连接，同时ClientThread要将自己的IP和端口发送给服务端，服务端进行注册。
+// ClientThread建立临时服务端，等待其他客户端的连接，同时ClientThread要将自己的IP和端口发送给服务端，服务端进行注册。
 public class ClientThread implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(ClientThread.class);
     private Socket socket;
@@ -43,6 +44,7 @@ public class ClientThread implements Runnable {
 
     @Override
     public void run() {
+        // todo 这里后面要进行优化，serverSocket不能一直开启，要适时关闭
         while (true) {
             // 等待其他客户端的连接
             String sendHostAddress = null;

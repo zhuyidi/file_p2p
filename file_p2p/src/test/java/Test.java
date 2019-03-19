@@ -8,8 +8,6 @@ public class Test {
     private static final Logger LOGGER = Logger.getLogger(Test.class);
 
     public static void main(String[] args) {
-        Integer a = 1;
-
         LOGGER.info("test info");
         LOGGER.debug("test debug");
         LOGGER.error("test error");

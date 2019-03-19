@@ -1,5 +1,6 @@
-package client;
+package client.core;
 
+import client.receive.ReceiveThread;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;

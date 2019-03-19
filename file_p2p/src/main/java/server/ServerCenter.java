@@ -34,6 +34,7 @@ public class ServerCenter {
             LOGGER.error("server启动失败！");
             close();
         }
+        LOGGER.info("server启动成功");
     }
 
     public static void main(String[] args) {
