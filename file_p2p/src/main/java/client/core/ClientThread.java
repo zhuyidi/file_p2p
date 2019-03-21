@@ -1,7 +1,6 @@
 package client.core;
 
 import client.receive.ReceiveThread;
-import com.sun.istack.internal.NotNull;
 import org.apache.log4j.Logger;
 import util.CloseUtil;
 
@@ -9,7 +8,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -24,14 +22,13 @@ public class ClientThread implements Runnable {
     private String hostAddress;
     private ServerSocket clientServerSocket;
     private static final ThreadPoolExecutor THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(1, 5, 30, TimeUnit.MINUTES,
-            new ArrayBlockingQueue<Runnable>(20), new ThreadFactory() {
-        @Override
-        public Thread newThread(@NotNull Runnable r) {
-            return new Thread(r);
-        }
-    });
+            new ArrayBlockingQueue<>(20), Thread::new, new ThreadPoolExecutor.AbortPolicy());
 
     public ClientThread(Socket socket) {
+        init(socket);
+    }
+
+    private void init(Socket socket) {
         this.socket = socket;
         hostAddress = socket.getLocalAddress().getHostAddress();
         try {

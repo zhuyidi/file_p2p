@@ -1,7 +1,6 @@
 package resourcetable.redis;
 
 
-import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;
 
 import java.util.HashMap;
@@ -14,8 +13,6 @@ import java.util.Set;
  */
 
 public class RedisTest {
-    private static final Logger LOGGER = Logger.getLogger(RedisTest.class);
-
     public static void main(String[] args) {
         Jedis jedis = new Jedis("localhost",6379);
         System.out.println("连接成功");

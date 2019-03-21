@@ -2,6 +2,10 @@ package util;
 
 import java.util.HashMap;
 
+/**
+ * by yidi on 3/19/19
+ */
+
 public class LogInfo {
     private HashMap<String, String> info;
 

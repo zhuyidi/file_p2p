@@ -15,6 +15,10 @@ public class ClientCenter {
     private Socket socket;
 
     public ClientCenter() {
+        init();
+    }
+
+    private void init() {
         String hostAddress = null;
         try {
             socket = new Socket("127.0.0.1", 33000);

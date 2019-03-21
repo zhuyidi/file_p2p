@@ -25,6 +25,10 @@ public class ReceiveThread implements Runnable {
     private byte[] buffer = new byte[BUFFER_SIZE];
 
     public ReceiveThread(Socket socket) {
+       init(socket);
+    }
+
+    private void init(Socket socket) {
         this.socket = socket;
         hostAdress = socket.getLocalAddress().getHostAddress();
         try {

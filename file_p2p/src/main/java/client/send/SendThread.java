@@ -24,13 +24,17 @@ public class SendThread implements Runnable {
     private byte[] buffer = new byte[BUFFER_SIZE];
 
     public SendThread(Socket socket) {
+        init(socket);
+    }
+
+    private void init(Socket socket) {
         this.socket = socket;
         hostAdress = socket.getLocalAddress().getHostAddress();
         try {
-            inputStream = new BufferedInputStream(socket.getInputStream());
-            outputStream = new BufferedOutputStream(socket.getOutputStream());
             dataInputStream = new DataInputStream(socket.getInputStream());
             dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            inputStream = new BufferedInputStream(socket.getInputStream());
+            outputStream = new BufferedOutputStream(socket.getOutputStream());
         } catch (IOException e) {
             LOGGER.error("客户端：" + socket.getLocalAddress().getHostAddress() + "的IO流异常！");
         }

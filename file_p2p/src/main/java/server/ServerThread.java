@@ -13,6 +13,10 @@ public class ServerThread implements Runnable {
     private Socket socket;
 
     public ServerThread(Socket socket) {
+        init(socket);
+    }
+
+    private void init(Socket socket) {
         this.socket = socket;
     }
 
