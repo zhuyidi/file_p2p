@@ -20,7 +20,7 @@ public class ResourceTable {
     // 客户端上线更新资源信息
     public static boolean updateResourceTable(ClientInfoDTO clientInfoDTO) {
         String key = clientInfoDTO.getHost() + "|" + clientInfoDTO.getPort();
-
+        
         return false;
     }
 
