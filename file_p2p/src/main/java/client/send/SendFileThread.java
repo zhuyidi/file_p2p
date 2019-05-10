@@ -12,8 +12,8 @@ import java.util.ResourceBundle;
  * by yidi on 3/18/19
  */
 
-public class SendThread implements Runnable {
-    private static final Logger LOGGER = Logger.getLogger(SendThread.class);
+public class SendFileThread implements Runnable {
+    private static final Logger LOGGER = Logger.getLogger(SendFileThread.class);
     private static final int BUFFER_SIZE = 32768; // todo 后面要将buffer的大小配置进properties
     private Socket socket;
     private BufferedInputStream inputStream;
@@ -23,7 +23,7 @@ public class SendThread implements Runnable {
     private String hostAdress;
     private byte[] buffer = new byte[BUFFER_SIZE];
 
-    public SendThread(Socket socket) {
+    public SendFileThread(Socket socket) {
         init(socket);
     }
 
@@ -88,11 +88,11 @@ public class SendThread implements Runnable {
         }
     }
 
-    public static void close(SendThread sendThread) {
-        CloseUtil.closeInputStream(sendThread.inputStream);
-        CloseUtil.closeOutputStream(sendThread.outputStream);
-        CloseUtil.closeInputStream(sendThread.dataInputStream);
-        CloseUtil.closeOutputStream(sendThread.dataOutputStream);
-        CloseUtil.closeSocket(sendThread.socket);
+    public static void close(SendFileThread sendFileThread) {
+        CloseUtil.closeInputStream(sendFileThread.inputStream);
+        CloseUtil.closeOutputStream(sendFileThread.outputStream);
+        CloseUtil.closeInputStream(sendFileThread.dataInputStream);
+        CloseUtil.closeOutputStream(sendFileThread.dataOutputStream);
+        CloseUtil.closeSocket(sendFileThread.socket);
     }
 }

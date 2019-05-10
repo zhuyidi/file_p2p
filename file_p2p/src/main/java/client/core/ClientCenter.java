@@ -1,7 +1,7 @@
 package client.core;
 
-import client.receive.ReceiveThread;
 import org.apache.log4j.Logger;
+import view.ClientMainJFrame;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -23,7 +23,7 @@ public class ClientCenter {
         try {
             socket = new Socket("127.0.0.1", 33000);
             hostAddress = socket.getLocalAddress().getHostAddress();
-            new Thread(new ReceiveThread(socket)).start();
+            new ClientMainJFrame(socket).initFrame();
         } catch (IOException e) {
             LOGGER.error("客户端：" + hostAddress + "连接服务端失败！");
         }

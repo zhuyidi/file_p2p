@@ -1,8 +1,16 @@
 package resourcetable;
 
-import client.ClientInfoDTO;
+import server.ClientInfoDTO;
 import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;
+import retry.Retryable;
+import util.FileUtil;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * by yidi on 3/19/19
@@ -17,14 +25,75 @@ public class ResourceTable {
         jedis = new Jedis("localhost",6379);
     }
 
-    // 客户端上线更新资源信息
-    public static boolean updateResourceTable(ClientInfoDTO clientInfoDTO) {
+    // 客户端在redis进行IP注册
+    // action1: 在clientInfo key中，注册这个客户端的信息，格式：<host|post, clientID>
+    // action2: 创建这个客户端的资源列表，格式: <clientID, fileName1 filename2...>
+    @Retryable
+    public static boolean registerClientInRedis(ClientInfoDTO clientInfoDTO) {
+        // 注册IP信息
         String key = clientInfoDTO.getHost() + "|" + clientInfoDTO.getPort();
-        
-        return false;
+        Map<String, String> clientInfo = new HashMap<>();
+        clientInfo.put(key, String.valueOf(clientInfoDTO.getClientId()));
+        try {
+            jedis.hmset("clientInfo", clientInfo);
+        } catch (Exception e) {
+            LOGGER.error("客户端：" + clientInfoDTO.getHost() + "上线信息注册失败");
+            return false;
+        }
+        return true;
+    }
+
+    // 客户端上线更新fileName key的value
+    public static boolean updateResourceTableForOnline(String clientHost) {
+        Set<String> fileNames;
+        try {
+            fileNames = FileUtil.getClientResource();
+        } catch (Exception e) {
+            LOGGER.error("客户端：" + clientHost + "获取本地资源失败");
+            return false;
+        }
+        String clientID = jedis.hmget("clientInfo", clientHost).get(0);
+        try {
+            fileNames.stream().forEach(e -> {
+                jedis.sadd(clientID, e);
+                addClientIdInFileKey(clientID, e);
+            });
+        } catch (Exception e) {
+            LOGGER.error("客户端：" + clientHost + "更新fileName key的value失败");
+            return false;
+        }
+        return true;
     }
 
     // 客户端下线更新资源信息
+    public static boolean updateResourceTableForOffline(String clientHost) {
+        try {
+            jedis.hdel("clientInfo", clientHost);
+            String clientID = jedis.hmget("clientInfo", clientHost).get(0);
+            Set<String> fileNames = jedis.smembers(clientID);
+            fileNames.stream().forEach(e -> delClientIdInFileKey(clientID, e));
+            jedis.del(clientID);
+        } catch (Exception e) {
+            LOGGER.error("客户端：" + clientHost + "下线更新资源信息失败");
+        }
+        return true;
+    }
+
+    // 客户端根据keyword模糊查询资源表
+    public static Set<String> queryFileNameByKeyword(String keyWord) {
+        String[] tempStr = keyWord.split("");
+        String kw = "*" + Arrays.stream(tempStr).map(e -> e+"*").reduce("", String::concat);
+        Set<String> result = jedis.keys(kw);
+        return result;
+    }
+
+    private static void addClientIdInFileKey(String clientID, String fileName) {
+        jedis.sadd(fileName, clientID);
+    }
+
+    private static void delClientIdInFileKey(String clientID, String fileName) {
+        jedis.srem(fileName, clientID);
+    }
 
     // and so on
 }

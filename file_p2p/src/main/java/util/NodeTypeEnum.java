@@ -5,16 +5,22 @@ package util;
  */
 
 public enum NodeTypeEnum {
-    SERVER(1),
-    CLIENT(2);
+    SERVER(1, "SERVER"),
+    CLIENT(2, "CLIENT");
 
     private int code;
+    private String desc;
 
-    private NodeTypeEnum(int code) {
+    private NodeTypeEnum(int code, String desc) {
         this.code = code;
+        this.desc = desc;
     }
 
     public int getCode() {
         return this.code;
+    }
+
+    public String getDesc() {
+        return this.desc;
     }
 }

@@ -1,7 +1,7 @@
-import client.ClientInfoDTO;
+import server.ClientInfoDTO;
 import util.FileUtil;
-import util.NodeTypeEnum;
 
+import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -10,8 +10,12 @@ import java.util.Set;
 
 public class FileUtilTest {
     public static void main(String[] args) {
-        ClientInfoDTO clientInfoDTO = new ClientInfoDTO(NodeTypeEnum.CLIENT.getCode(), "127.0.0.1", "33001");
-        Set<String> result = FileUtil.getClientResource(clientInfoDTO);
+        ClientInfoDTO clientInfoDTO = new ClientInfoDTO("127.0.0.1", "33000");
+        System.out.println(clientInfoDTO.getType() + " " + clientInfoDTO.getPort() + clientInfoDTO.getHost());
+        Set<String> result = null;
+        try {
+            result = FileUtil.getClientResource();
+        } catch (IOException e) {}
         result.forEach(System.out::println);
     }
 }

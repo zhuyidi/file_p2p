@@ -1,11 +1,15 @@
 package client.receive;
 
+import observer.IReceiveSectionListener;
+import observer.IReceiveSectionSpeaker;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import util.CloseUtil;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Scanner;
 
@@ -13,7 +17,7 @@ import java.util.Scanner;
  * by yidi on 3/7/19
  */
 
-public class ReceiveThread implements Runnable {
+public class ReceiveThread implements Runnable, IReceiveSectionSpeaker {
     private static final Logger LOGGER = Logger.getLogger(ReceiveThread.class);
     private static final int BUFFER_SIZE = 32768; // todo 后面要将buffer的大小配置进properties
     private Socket socket;
@@ -23,6 +27,7 @@ public class ReceiveThread implements Runnable {
     private DataInputStream dataInputStream;
     private DataOutputStream dataOutputStream;
     private byte[] buffer = new byte[BUFFER_SIZE];
+    private List<IReceiveSectionListener> listeners = new ArrayList<>();
 
     public ReceiveThread(Socket socket) {
        init(socket);
@@ -40,6 +45,10 @@ public class ReceiveThread implements Runnable {
             LOGGER.error("客户端：" + hostAdress + "初始化IO流失败！");
         }
     }
+
+    // todo
+    // 接下来在ReceiveThread里面要做的就是接收分片文件。
+    // 每接收完一个分片文件，向ReceiveCenter通知一次，在RC里判断所有的分片是否接收完毕，接收完毕后关闭接收服务器
 
     @Override
     public void run() {
@@ -104,5 +113,15 @@ public class ReceiveThread implements Runnable {
         CloseUtil.closeInputStream(clientThread.inputStream);
         CloseUtil.closeOutputStream(clientThread.outputStream);
         CloseUtil.closeSocket(clientThread.socket);
+    }
+
+    @Override
+    public void setListener(List<IReceiveSectionListener> listeners) {
+        this.listeners = listeners;
+    }
+
+    @Override
+    public void addListener(IReceiveSectionListener listener) {
+        this.listeners.add(listener);
     }
 }

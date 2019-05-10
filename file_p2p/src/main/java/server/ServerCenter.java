@@ -1,8 +1,9 @@
 package server;
 
-import com.sun.istack.internal.NotNull;
 import org.apache.log4j.Logger;
+import resourcetable.ResourceTable;
 import util.CloseUtil;
+import util.NodeTypeEnum;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -10,6 +11,7 @@ import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * by yidi on 3/6/19
@@ -20,6 +22,7 @@ public class ServerCenter {
     private static ServerSocket serverSocket;
     private static final ThreadPoolExecutor THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(1, 5, 30, TimeUnit.MINUTES,
             new ArrayBlockingQueue<>(20), Thread::new, new ThreadPoolExecutor.AbortPolicy());
+    private static AtomicLong ClientId = new AtomicLong(1L);
 
     static {
         try {
@@ -31,21 +34,33 @@ public class ServerCenter {
         LOGGER.info("server启动成功");
     }
 
-    public static void main(String[] args) {
-        ServerCenter serverCenter = new ServerCenter();
-
+    public void start() {
         while (true) {
             // 等待客户端的连接
             String hostAddress = null;
-            try {
-                Socket socket = serverSocket.accept();
+            Socket socket = null;
+            String port;
+            try{
+                socket = serverSocket.accept();
                 hostAddress = socket.getLocalAddress().getHostAddress();
+                port = String.valueOf(socket.getLocalPort());
                 LOGGER.info("客户端：" + hostAddress + "连接成功");
-                THREAD_POOL_EXECUTOR.execute(new ServerThread(socket));
+                ClientInfoDTO clientInfoDTO = new ClientInfoDTO(NodeTypeEnum.CLIENT.getCode(), socket, ClientId.getAndIncrement(), hostAddress, port);
+                init(clientInfoDTO);
+                THREAD_POOL_EXECUTOR.execute(new ServerThread(clientInfoDTO));
             } catch (IOException e) {
                 LOGGER.error("客户端连接异常！客户端IP：" + hostAddress);
+                closeClient(socket.getLocalAddress() + "|" + socket.getPort());
             }
         }
+    }
+
+    private void init(ClientInfoDTO clientInfoDTO) {
+        ResourceTable.registerClientInRedis(clientInfoDTO);
+    }
+
+    private static void closeClient(String clientHost) {
+        ResourceTable.updateResourceTableForOffline(clientHost);
     }
 
     private static void close() {

@@ -1,6 +1,7 @@
 package server;
 
 import org.apache.log4j.Logger;
+import resourcetable.ResourceTable;
 
 import java.net.Socket;
 
@@ -12,14 +13,16 @@ public class ServerThread implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(ServerThread.class);
     private Socket socket;
 
-    public ServerThread(Socket socket) {
-        init(socket);
+    public ServerThread(ClientInfoDTO clientInfoDTO) {
+        init(clientInfoDTO);
     }
 
-    private void init(Socket socket) {
-        this.socket = socket;
+    private void init(ClientInfoDTO clientInfoDTO) {
+        this.socket = clientInfoDTO.getSocket();
+        ResourceTable.registerClientInRedis(clientInfoDTO);
     }
 
+    // run里循环监听来自客户端的消息
     @Override
     public void run() {
 
