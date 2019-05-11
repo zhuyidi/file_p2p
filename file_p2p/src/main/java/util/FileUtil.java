@@ -1,5 +1,6 @@
 package util;
 
+import model.ConfigInfo;
 import server.ClientInfoDTO;
 import org.apache.log4j.Logger;
 
@@ -9,7 +10,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
-import java.util.ResourceBundle;
 import java.util.Set;
 
 /**
@@ -19,12 +19,10 @@ import java.util.Set;
 public class FileUtil {
     private static final Logger LOGGER = Logger.getLogger(FileUtil.class);
 
-    public static Set<String> getClientResource() throws IOException {
-        ResourceBundle resourceBundle = ResourceBundle.getBundle("file-config");
-        String sendPath = resourceBundle.getString("sendPath");
-        String targetPath = resourceBundle.getString("targetPath");
-        Set<String> result = null;
-        result = getFileName(sendPath);
+    public static Set<String> getClientResource(ConfigInfo configInfo) throws IOException {
+        String sendPath = configInfo.getSendPath();
+        String targetPath = configInfo.getTargetPath();
+        Set<String> result = getFileName(sendPath);
         result.containsAll(getFileName(targetPath));
         return result;
     }
@@ -37,7 +35,7 @@ public class FileUtil {
             Set<String> result = new HashSet<>();
         Path start = FileSystems.getDefault().getPath(path);
         Files.walk(start).filter(childpath -> childpath.toFile().isFile())
-                .forEach(e -> result.add(e.toString()));
+                .forEach(e -> result.add(e.getFileName().toString()));
         return result;
     }
 }

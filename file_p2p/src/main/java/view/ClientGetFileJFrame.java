@@ -4,7 +4,6 @@ import client.message.ClientMessageEnum;
 import client.send.SendMessage;
 import model.MessageInfo;
 import org.apache.log4j.Logger;
-import resourcetable.ResourceTable;
 import util.NodeTypeEnum;
 import util.ViewUtil;
 
@@ -21,16 +20,22 @@ import java.util.Set;
 public class ClientGetFileJFrame {
     private static final Logger LOGGER = Logger.getLogger(ClientGetFileJFrame.class);
     private Socket socket;
-    private String keyWords;
     private JFrame jFrame = new JFrame();
     private JList<String> fileList;
     private DefaultListModel<String> fileModel = new DefaultListModel<>();
     private JButton choose = new JButton("选择");
     private JButton cancel = new JButton("取消");
+    private Set<String> fileNameList;
 
-    public ClientGetFileJFrame(String keyWords, Socket socket) {
-        this.keyWords = keyWords;
+
+    public ClientGetFileJFrame(Socket socket, Set<String> fileNameList) {
         this.socket = socket;
+        this.fileNameList = fileNameList;
+        if (fileNameList == null || fileNameList.size() == 0) {
+            JOptionPane.showMessageDialog(null, "抱歉！你要找的资源不存在", "资源不存在", JOptionPane.WARNING_MESSAGE);
+        } else {
+            init();
+        }
     }
 
     public void init() {
@@ -38,8 +43,7 @@ public class ClientGetFileJFrame {
         jFrame.setBounds(result[0], result[1], ViewUtil.FRAME_WIDTH, ViewUtil.FRAME_HEIGHT);
         jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        Set<String> fileNames = ResourceTable.queryFileNameByKeyword(keyWords);
-        fileNames.stream().forEach(e -> fileModel.addElement(e));
+        fileNameList.stream().forEach(e -> fileModel.addElement(e));
         fileList = new JList<>(fileModel);
         fileList.setVisibleRowCount(5);
         fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -57,19 +61,16 @@ public class ClientGetFileJFrame {
 
     private void choose() {
         choose.addActionListener(evn -> {
-            jFrame.dispatchEvent(new WindowEvent(jFrame, WindowEvent.WINDOW_CLOSING));
             MessageInfo messageInfo = new MessageInfo(NodeTypeEnum.CLIENT.getCode(),
-                    socket.getLocalAddress() + "|" + socket.getPort(), NodeTypeEnum.SERVER.getCode(), "",
-                    ClientMessageEnum.REQUEST.getCode(), keyWords);
+                    socket.getLocalAddress().getHostAddress() + "|" + socket.getPort(), NodeTypeEnum.SERVER.getCode(), "",
+                    ClientMessageEnum.REQUEST.getCode(), fileList.getSelectedValue());
+            System.out.println(fileList.getSelectedValue());
             SendMessage.sendMessage(messageInfo, socket);
+            jFrame.dispatchEvent(new WindowEvent(jFrame, WindowEvent.WINDOW_CLOSING));
         });
     }
 
     private void cancel() {
         cancel.addActionListener(evn -> jFrame.dispatchEvent(new WindowEvent(jFrame, WindowEvent.WINDOW_CLOSING)));
-    }
-
-    public static void main(String[] args) {
-        new ClientGetFileJFrame("test", null).init();
     }
 }

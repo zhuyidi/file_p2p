@@ -50,7 +50,7 @@ public class ServerCenter {
                 THREAD_POOL_EXECUTOR.execute(new ServerThread(clientInfoDTO));
             } catch (IOException e) {
                 LOGGER.error("客户端连接异常！客户端IP：" + hostAddress);
-                closeClient(socket.getLocalAddress() + "|" + socket.getPort());
+                closeClient(socket.getLocalAddress().getHostAddress() + "|" + socket.getPort());
             }
         }
     }

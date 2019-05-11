@@ -1,5 +1,6 @@
 package client.receive;
 
+import model.ConfigInfo;
 import observer.IReceiveSectionListener;
 import org.apache.log4j.Logger;
 import util.CloseUtil;
@@ -20,8 +21,10 @@ public class ReceiveCenter implements IReceiveSectionListener {
     private ServerSocket serverSocket;
     private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 5, 30,TimeUnit.MINUTES,
             new ArrayBlockingQueue<>(20), Thread::new, new ThreadPoolExecutor.AbortPolicy());
+    private ConfigInfo configInfo;
 
-    public ReceiveCenter() {
+    public ReceiveCenter(ConfigInfo configInfo) {
+        this.configInfo = configInfo;
         try {
             serverSocket = new ServerSocket(44000);
         } catch (IOException e) {
@@ -39,7 +42,7 @@ public class ReceiveCenter implements IReceiveSectionListener {
                 Socket socket = serverSocket.accept();
                 hostAddress = socket.getLocalAddress().getHostAddress();
                 LOGGER.info("客户端：" + hostAddress + "连接成功");
-                threadPoolExecutor.execute(new ReceiveThread(socket));
+                threadPoolExecutor.execute(new ReceiveThread(socket, configInfo));
             } catch (IOException e) {
                 LOGGER.error("客户端连接异常！客户端IP：" + hostAddress);
             }

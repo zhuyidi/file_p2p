@@ -1,9 +1,6 @@
 package server;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import util.NodeTypeEnum;
 
 import java.net.Socket;
@@ -15,6 +12,7 @@ import java.net.Socket;
 @Data
 @RequiredArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class ClientInfoDTO {
     private int type = NodeTypeEnum.CLIENT.getCode();
     private Socket socket;

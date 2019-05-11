@@ -1,6 +1,7 @@
 package client.core;
 
 import client.message.DealMessageForClient;
+import model.ConfigInfo;
 import model.MessageInfo;
 import org.apache.log4j.Logger;
 import util.CloseUtil;
@@ -17,10 +18,11 @@ import java.net.Socket;
 public class ClientThread implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(ClientThread.class);
     private Socket socket;
-
     private DataInputStream inputStream;
+    private ConfigInfo configInfo;
 
-    public ClientThread(Socket socket) {
+    public ClientThread(Socket socket, ConfigInfo configInfo) {
+        this.configInfo = configInfo;
         init(socket);
     }
 
@@ -29,7 +31,7 @@ public class ClientThread implements Runnable {
         try {
             inputStream = new DataInputStream(socket.getInputStream());
         } catch (IOException e) {
-            LOGGER.error("客户端：" + socket.getLocalAddress() + "|" + socket.getPort() + "获取输入流失败");
+            LOGGER.error("客户端：" + socket.getLocalAddress().getHostAddress() + "|" + socket.getPort() + "获取输入流失败");
             close();
         }
     }
@@ -42,9 +44,9 @@ public class ClientThread implements Runnable {
             try {
                 strMessage = inputStream.readUTF();
                 MessageInfo message = ParseUtil.parseMessage(strMessage);
-                DealMessageForClient.deal(message);
+                DealMessageForClient.deal(message, configInfo);
             } catch (IOException e) {
-                LOGGER.error("客户端：" + socket.getLocalAddress() + "|" + socket.getPort() + "接收服务端消息失败");
+                LOGGER.error("客户端：" + socket.getLocalAddress().getHostAddress() + "|" + socket.getPort() + "接收服务端消息失败");
             }
         }
     }

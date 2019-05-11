@@ -1,6 +1,8 @@
 package client.core;
 
+import model.ConfigInfo;
 import org.apache.log4j.Logger;
+import resourcetable.ResourceTable;
 import view.ClientMainJFrame;
 
 import java.io.IOException;
@@ -13,8 +15,10 @@ import java.net.Socket;
 public class ClientCenter {
     private static final Logger LOGGER = Logger.getLogger(ClientCenter.class);
     private Socket socket;
+    private ConfigInfo configInfo;
 
-    public ClientCenter() {
+    public ClientCenter(ConfigInfo configInfo) {
+        this.configInfo = configInfo;
         init();
     }
 
@@ -23,7 +27,8 @@ public class ClientCenter {
         try {
             socket = new Socket("127.0.0.1", 33000);
             hostAddress = socket.getLocalAddress().getHostAddress();
-            new ClientMainJFrame(socket).initFrame();
+            ResourceTable.updateResourceTableForOnline(hostAddress + "|" + socket.getPort(), configInfo);
+            new ClientMainJFrame(socket, configInfo).initFrame();
         } catch (IOException e) {
             LOGGER.error("客户端：" + hostAddress + "连接服务端失败！");
         }

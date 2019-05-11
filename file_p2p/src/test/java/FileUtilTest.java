@@ -1,3 +1,4 @@
+import model.ConfigInfo;
 import server.ClientInfoDTO;
 import util.FileUtil;
 
@@ -14,7 +15,7 @@ public class FileUtilTest {
         System.out.println(clientInfoDTO.getType() + " " + clientInfoDTO.getPort() + clientInfoDTO.getHost());
         Set<String> result = null;
         try {
-            result = FileUtil.getClientResource();
+            result = FileUtil.getClientResource(new ConfigInfo());
         } catch (IOException e) {}
         result.forEach(System.out::println);
     }

@@ -1,5 +1,6 @@
 package client.receive;
 
+import model.ConfigInfo;
 import observer.IReceiveSectionListener;
 import observer.IReceiveSectionSpeaker;
 import org.apache.commons.lang3.StringUtils;
@@ -19,18 +20,20 @@ import java.util.Scanner;
 
 public class ReceiveThread implements Runnable, IReceiveSectionSpeaker {
     private static final Logger LOGGER = Logger.getLogger(ReceiveThread.class);
-    private static final int BUFFER_SIZE = 32768; // todo 后面要将buffer的大小配置进properties
     private Socket socket;
     private String hostAdress;
     private BufferedInputStream inputStream;
     private BufferedOutputStream outputStream;
     private DataInputStream dataInputStream;
     private DataOutputStream dataOutputStream;
-    private byte[] buffer = new byte[BUFFER_SIZE];
+    private byte[] buffer;
+    private ConfigInfo configInfo;
     private List<IReceiveSectionListener> listeners = new ArrayList<>();
 
-    public ReceiveThread(Socket socket) {
-       init(socket);
+    public ReceiveThread(Socket socket, ConfigInfo configInfo) {
+        this.configInfo = configInfo;
+        buffer = new byte[configInfo.getBufferSize()];
+        init(socket);
     }
 
     private void init(Socket socket) {
@@ -95,7 +98,8 @@ public class ReceiveThread implements Runnable, IReceiveSectionSpeaker {
         // 开始接收文件
         try {
             while (fileLen > 0) {
-                int temp = inputStream.read(buffer, 0, fileLen > BUFFER_SIZE ? BUFFER_SIZE : (int) fileLen);
+                int temp = inputStream.read(buffer, 0, fileLen > configInfo.getBufferSize()
+                        ? configInfo.getBufferSize() : (int) fileLen);
                 file.write(buffer, 0, temp);
                 fileLen -= temp;
             }

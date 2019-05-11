@@ -1,7 +1,6 @@
 package server;
 
 import org.apache.log4j.Logger;
-import resourcetable.ResourceTable;
 
 import java.net.Socket;
 
@@ -19,7 +18,6 @@ public class ServerThread implements Runnable {
 
     private void init(ClientInfoDTO clientInfoDTO) {
         this.socket = clientInfoDTO.getSocket();
-        ResourceTable.registerClientInRedis(clientInfoDTO);
     }
 
     // run里循环监听来自客户端的消息

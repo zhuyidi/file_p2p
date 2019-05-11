@@ -1,12 +1,12 @@
 package client.send;
 
+import model.ConfigInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import util.CloseUtil;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ResourceBundle;
 
 /**
  * by yidi on 3/18/19
@@ -14,16 +14,18 @@ import java.util.ResourceBundle;
 
 public class SendFileThread implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(SendFileThread.class);
-    private static final int BUFFER_SIZE = 32768; // todo 后面要将buffer的大小配置进properties
     private Socket socket;
     private BufferedInputStream inputStream;
     private BufferedOutputStream outputStream;
     private DataInputStream dataInputStream;
     private DataOutputStream dataOutputStream;
     private String hostAdress;
-    private byte[] buffer = new byte[BUFFER_SIZE];
+    private byte[] buffer;
+    private ConfigInfo configInfo;
 
-    public SendFileThread(Socket socket) {
+    public SendFileThread(Socket socket, ConfigInfo configInfo) {
+        this.configInfo = configInfo;
+        buffer = new byte[configInfo.getBufferSize()];
         init(socket);
     }
 
@@ -55,7 +57,7 @@ public class SendFileThread implements Runnable {
             LOGGER.error("接收客户端：" + hostAdress + "文件名失败");
             return;
         }
-        String filePath = ResourceBundle.getBundle("file-config").getString("sendPath") + fileName;
+        String filePath = configInfo.getSendPath() + fileName;
         RandomAccessFile file;
         try {
             file = new RandomAccessFile(filePath, "rw");
@@ -73,13 +75,13 @@ public class SendFileThread implements Runnable {
         }
         while (fileLen > 0) {
             try {
-                fileLen -= file.read(buffer, 0, BUFFER_SIZE);
+                fileLen -= file.read(buffer, 0, configInfo.getBufferSize());
             } catch (IOException e) {
                 LOGGER.error("发送端读取文件内容失败，客户端信息：" + hostAdress);
                 return;
             }
             try {
-                outputStream.write(buffer, 0, BUFFER_SIZE);
+                outputStream.write(buffer, 0, configInfo.getBufferSize());
                 outputStream.flush();
             } catch (IOException e) {
                 LOGGER.error("发送端发送文件内容失败，客户端信息：" + hostAdress);

@@ -1,6 +1,8 @@
 package view;
 
 import client.core.ClientThread;
+import model.ConfigInfo;
+import resourcetable.ResourceTable;
 import util.ViewUtil;
 
 import javax.swing.*;
@@ -8,6 +10,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.Socket;
+import java.util.Set;
 
 /**
  *  by yidi on 5/6/19
@@ -17,10 +20,12 @@ public class ClientMainJFrame {
     private JFrame clientJFrame = new JFrame();
     private Container container = clientJFrame.getContentPane();
     private Socket socket;
+    private ConfigInfo configInfo;
 
-    public ClientMainJFrame(Socket socket) {
+    public ClientMainJFrame(Socket socket, ConfigInfo configInfo) {
         this.socket = socket;
-        clientJFrame.setName(socket.getLocalAddress() + " " + socket.getPort());
+        this.configInfo = configInfo;
+        clientJFrame.setName(socket.getLocalAddress().getHostName() + " " + socket.getPort());
     }
 
     public void initFrame() {
@@ -56,34 +61,29 @@ public class ClientMainJFrame {
         updateResource.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                // todo 更新客户端资源
-                System.out.println("hello");
+                boolean result = ResourceTable.updateResourceTableForOnline(socket.getLocalAddress().getHostAddress()
+                        + "|" + socket.getPort(), configInfo);
+                if (result) {
+                    JOptionPane.showMessageDialog(null, "本地资源已同步到云端！", "更新成功"
+                        , JOptionPane.OK_OPTION);
+                } else {
+                    JOptionPane.showMessageDialog(null, "资源更新失败", "更新失败"
+                            , JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
         search.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 // 获取输入的资源名，并进行检索
-                new ClientGetFileJFrame(fileName.getText()).init();
+                Set<String> fileNames = ResourceTable.queryFileNameByKeyword(fileName.getText());
+                new ClientGetFileJFrame(socket, fileNames);
             }
         });
-        new Thread(new ClientThread(socket)).start();
-    }
-
-    private void getFileList(int fileCount) {
-        while (fileCount > 0) {
-            JPanel jPanel = new JPanel();
-            JButton jButton = new JButton(String.valueOf(fileCount));
-            jButton.setSize(10, 4);
-            jPanel.add(jButton);
-            container.add(jPanel);
-            System.out.println(fileCount);
-            fileCount--;
-        }
-        clientJFrame.setVisible(true);
+        new Thread(new ClientThread(socket, configInfo)).start();
     }
 
     public static void main(String[] args) {
-        new ClientMainJFrame(new Socket()).initFrame();
+        new ClientMainJFrame(new Socket(), new ConfigInfo()).initFrame();
     }
 }

@@ -1,5 +1,6 @@
 package resourcetable;
 
+import model.ConfigInfo;
 import server.ClientInfoDTO;
 import org.apache.log4j.Logger;
 import redis.clients.jedis.Jedis;
@@ -10,7 +11,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 /**
  * by yidi on 3/19/19
@@ -44,10 +44,10 @@ public class ResourceTable {
     }
 
     // 客户端上线更新fileName key的value
-    public static boolean updateResourceTableForOnline(String clientHost) {
+    public static boolean updateResourceTableForOnline(String clientHost, ConfigInfo configInfo) {
         Set<String> fileNames;
         try {
-            fileNames = FileUtil.getClientResource();
+            fileNames = FileUtil.getClientResource(configInfo);
         } catch (Exception e) {
             LOGGER.error("客户端：" + clientHost + "获取本地资源失败");
             return false;
@@ -59,7 +59,7 @@ public class ResourceTable {
                 addClientIdInFileKey(clientID, e);
             });
         } catch (Exception e) {
-            LOGGER.error("客户端：" + clientHost + "更新fileName key的value失败");
+            LOGGER.error("客户端：" + clientHost + "更新fileName key的value失败 " + e.getMessage());
             return false;
         }
         return true;
@@ -68,13 +68,13 @@ public class ResourceTable {
     // 客户端下线更新资源信息
     public static boolean updateResourceTableForOffline(String clientHost) {
         try {
-            jedis.hdel("clientInfo", clientHost);
             String clientID = jedis.hmget("clientInfo", clientHost).get(0);
+            jedis.hdel("clientInfo", clientHost);
             Set<String> fileNames = jedis.smembers(clientID);
             fileNames.stream().forEach(e -> delClientIdInFileKey(clientID, e));
             jedis.del(clientID);
         } catch (Exception e) {
-            LOGGER.error("客户端：" + clientHost + "下线更新资源信息失败");
+            LOGGER.error("客户端：" + clientHost + "下线更新资源信息失败 " + e.getMessage());
         }
         return true;
     }
