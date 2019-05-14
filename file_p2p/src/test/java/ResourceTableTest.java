@@ -21,6 +21,8 @@ public class ResourceTableTest {
         ConfigInfo configInfo = new ConfigInfo();
         ResourceTable.registerClientInRedis(clientInfoDTO);
         ResourceTable.updateResourceTableForOnline(clientInfoDTO.getHost() + "|" + clientInfoDTO.getPort(), configInfo);
-//        ResourceTable.updateResourceTableForOffline(clientInfoDTO.getHost() + "|" + clientInfoDTO.getPort());
+        ResourceTable.updateResourceTableForOffline(clientInfoDTO.getHost() + "|" + clientInfoDTO.getPort());
+        ResourceTable.getClientsByFileName("Jony J - My City 南京.mp3").stream().forEach(System.out::println);
+        System.out.println(ResourceTable.getAllFileInfo("Jony J"));
     }
 }

@@ -1,7 +1,6 @@
 package util;
 
 import model.ConfigInfo;
-import server.ClientInfoDTO;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -35,7 +34,7 @@ public class FileUtil {
             Set<String> result = new HashSet<>();
         Path start = FileSystems.getDefault().getPath(path);
         Files.walk(start).filter(childpath -> childpath.toFile().isFile())
-                .forEach(e -> result.add(e.getFileName().toString()));
+                .forEach(e -> result.add(e.getFileName().toString() + "&&" + e.toFile().length()));
         return result;
     }
 }

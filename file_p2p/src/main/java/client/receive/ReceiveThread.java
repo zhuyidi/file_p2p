@@ -1,18 +1,18 @@
 package client.receive;
 
 import model.ConfigInfo;
+import model.FileTaskInfo;
 import observer.IReceiveSectionListener;
 import observer.IReceiveSectionSpeaker;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import util.CloseUtil;
+import util.ParseUtil;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.Scanner;
 
 /**
  * by yidi on 3/7/19
@@ -29,10 +29,12 @@ public class ReceiveThread implements Runnable, IReceiveSectionSpeaker {
     private byte[] buffer;
     private ConfigInfo configInfo;
     private List<IReceiveSectionListener> listeners = new ArrayList<>();
+    private final int BUFFER_SIZE = Integer.parseInt(ResourceBundle.getBundle("file-config").getString("bufferSize"));
+    private FileTaskInfo fileTaskInfo;
 
     public ReceiveThread(Socket socket, ConfigInfo configInfo) {
         this.configInfo = configInfo;
-        buffer = new byte[configInfo.getBufferSize()];
+        buffer = new byte[BUFFER_SIZE];
         init(socket);
     }
 
@@ -49,57 +51,31 @@ public class ReceiveThread implements Runnable, IReceiveSectionSpeaker {
         }
     }
 
-    // todo
-    // 接下来在ReceiveThread里面要做的就是接收分片文件。
-    // 每接收完一个分片文件，向ReceiveCenter通知一次，在RC里判断所有的分片是否接收完毕，接收完毕后关闭接收服务器
-
     @Override
     public void run() {
-        String fileName; // todo Demo字段
-        long fileLen; // todo Demo字段
-
-        System.out.println("请输入需要接收的文件名：");
-        // 输入需要接受的文件名，传送给服务端
-        Scanner scanner = new Scanner(System.in);
-        fileName = scanner.nextLine();
-        if (StringUtils.isEmpty(fileName)) {
-            close(this);
-            return;
-        }
         try {
-            dataOutputStream.writeUTF(fileName);
+            fileTaskInfo = ParseUtil.parseFileTask(dataInputStream.readUTF());
         } catch (IOException e) {
-            LOGGER.error("客户端：" + hostAdress + "发送文件名失败");
-        }
-        ResourceBundle resourceBundle = ResourceBundle.getBundle("file-config");
-        String targetPath = resourceBundle.getString("targetPath");
-
-        // 接收服务端传送过来的文件大小
-        try {
-            fileLen = dataInputStream.readLong();
-        } catch (IOException e) {
-            LOGGER.error("客户端：" + hostAdress + "读取文件大小失败！");
-            close(this);
-            return;
+            LOGGER.error("接收端接收任务头失败");
         }
 
-        // 创建目标文件
-        RandomAccessFile file = null;
+        String fileName = fileTaskInfo.getTargetFilename();
+        long fileLen = fileTaskInfo.getSectionLen();
+        RandomAccessFile file;
         try {
-            String filePath = targetPath + fileName;
+            String filePath = configInfo.getTargetPath() + fileName + ".tmp." + fileTaskInfo.getSectionNum();
             file = new RandomAccessFile(filePath, "rw");
         } catch (FileNotFoundException e) {
             LOGGER.error("客户端：" + hostAdress + "创建目标文件失败！");
             close(this);
             return;
         }
-         LOGGER.info("客户端：" + hostAdress + "开始接受文件");
-
-        // 开始接收文件
+        LOGGER.info("客户端：" + hostAdress + "开始接受文件");
+        // 开始接收分片文件
         try {
             while (fileLen > 0) {
-                int temp = inputStream.read(buffer, 0, fileLen > configInfo.getBufferSize()
-                        ? configInfo.getBufferSize() : (int) fileLen);
+                int temp = inputStream.read(buffer, 0, fileLen > BUFFER_SIZE
+                        ? BUFFER_SIZE : (int) fileLen);
                 file.write(buffer, 0, temp);
                 fileLen -= temp;
             }
@@ -109,6 +85,7 @@ public class ReceiveThread implements Runnable, IReceiveSectionSpeaker {
             return;
         }
         LOGGER.info("客户端：" + hostAdress + "接收文件：" + fileName + "成功");
+        sendGetOneSection(fileName);
     }
 
     private static void close(ReceiveThread clientThread) {
@@ -120,12 +97,14 @@ public class ReceiveThread implements Runnable, IReceiveSectionSpeaker {
     }
 
     @Override
-    public void setListener(List<IReceiveSectionListener> listeners) {
-        this.listeners = listeners;
+    public void addReceiveSectionListener(IReceiveSectionListener listener) {
+        listeners.add(listener);
     }
 
     @Override
-    public void addListener(IReceiveSectionListener listener) {
-        this.listeners.add(listener);
+    public void sendGetOneSection(String fileName) {
+        for (IReceiveSectionListener listener : listeners) {
+            listener.getRceiveOneSection(fileName);
+        }
     }
 }

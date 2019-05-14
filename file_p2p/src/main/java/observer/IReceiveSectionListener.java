@@ -6,5 +6,5 @@ package observer;
 
 public interface IReceiveSectionListener {
     // 接收完一个分片文件
-    void onGetOneSection(long sectionLen);
+    void getRceiveOneSection(String fileName);
 }

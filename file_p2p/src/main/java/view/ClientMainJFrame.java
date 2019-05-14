@@ -11,6 +11,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.Socket;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  *  by yidi on 5/6/19
@@ -25,7 +26,7 @@ public class ClientMainJFrame {
     public ClientMainJFrame(Socket socket, ConfigInfo configInfo) {
         this.socket = socket;
         this.configInfo = configInfo;
-        clientJFrame.setName(socket.getLocalAddress().getHostName() + " " + socket.getPort());
+        clientJFrame.setName(socket.getLocalAddress().getHostName() + " " + socket.getLocalPort());
     }
 
     public void initFrame() {
@@ -62,7 +63,7 @@ public class ClientMainJFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 boolean result = ResourceTable.updateResourceTableForOnline(socket.getLocalAddress().getHostAddress()
-                        + "|" + socket.getPort(), configInfo);
+                        + "|" + socket.getLocalPort(), configInfo);
                 if (result) {
                     JOptionPane.showMessageDialog(null, "本地资源已同步到云端！", "更新成功"
                         , JOptionPane.OK_OPTION);
@@ -76,8 +77,9 @@ public class ClientMainJFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 // 获取输入的资源名，并进行检索
-                Set<String> fileNames = ResourceTable.queryFileNameByKeyword(fileName.getText());
-                new ClientGetFileJFrame(socket, fileNames);
+                Set<String> fileNames = ResourceTable.queryFileNameByKeyword(fileName.getText())
+                        .stream().map(s -> s.split("&&")[0]).collect(Collectors.toSet());
+                new ClientGetFileJFrame(socket, configInfo, fileNames);
             }
         });
         new Thread(new ClientThread(socket, configInfo)).start();

@@ -1,7 +1,9 @@
 package view;
 
 import client.message.ClientMessageEnum;
-import client.send.SendMessage;
+import client.receive.ReceiveCenter;
+import client.send.SendMessageForClient;
+import model.ConfigInfo;
 import model.MessageInfo;
 import org.apache.log4j.Logger;
 import util.NodeTypeEnum;
@@ -26,10 +28,12 @@ public class ClientGetFileJFrame {
     private JButton choose = new JButton("选择");
     private JButton cancel = new JButton("取消");
     private Set<String> fileNameList;
+    private ConfigInfo configInfo;
 
 
-    public ClientGetFileJFrame(Socket socket, Set<String> fileNameList) {
+    public ClientGetFileJFrame(Socket socket, ConfigInfo configInfo, Set<String> fileNameList) {
         this.socket = socket;
+        this.configInfo = configInfo;
         this.fileNameList = fileNameList;
         if (fileNameList == null || fileNameList.size() == 0) {
             JOptionPane.showMessageDialog(null, "抱歉！你要找的资源不存在", "资源不存在", JOptionPane.WARNING_MESSAGE);
@@ -62,11 +66,12 @@ public class ClientGetFileJFrame {
     private void choose() {
         choose.addActionListener(evn -> {
             MessageInfo messageInfo = new MessageInfo(NodeTypeEnum.CLIENT.getCode(),
-                    socket.getLocalAddress().getHostAddress() + "|" + socket.getPort(), NodeTypeEnum.SERVER.getCode(), "",
+                    socket.getLocalAddress().getHostAddress() + "|" + ReceiveCenter.PORT, NodeTypeEnum.SERVER.getCode(), "",
                     ClientMessageEnum.REQUEST.getCode(), fileList.getSelectedValue());
             System.out.println(fileList.getSelectedValue());
-            SendMessage.sendMessage(messageInfo, socket);
-            jFrame.dispatchEvent(new WindowEvent(jFrame, WindowEvent.WINDOW_CLOSING));
+            SendMessageForClient.sendMessage(messageInfo, socket);
+            jFrame.dispose();
+//            jFrame.dispatchEvent(new WindowEvent(jFrame, WindowEvent.WINDOW_CLOSING));
         });
     }
 

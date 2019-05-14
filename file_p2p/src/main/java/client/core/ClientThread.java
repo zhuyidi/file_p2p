@@ -31,7 +31,7 @@ public class ClientThread implements Runnable {
         try {
             inputStream = new DataInputStream(socket.getInputStream());
         } catch (IOException e) {
-            LOGGER.error("客户端：" + socket.getLocalAddress().getHostAddress() + "|" + socket.getPort() + "获取输入流失败");
+            LOGGER.error("客户端：" + socket.getLocalAddress().getHostAddress() + "|" + socket.getLocalPort() + "获取输入流失败");
             close();
         }
     }
@@ -39,14 +39,16 @@ public class ClientThread implements Runnable {
     @Override
     public void run() {
         // todo 循环监听消息
+        System.out.println("客户端监听消息线程已运行");
         while (true) {
             String strMessage;
             try {
                 strMessage = inputStream.readUTF();
+                System.out.println("client message:" + strMessage);
                 MessageInfo message = ParseUtil.parseMessage(strMessage);
                 DealMessageForClient.deal(message, configInfo);
             } catch (IOException e) {
-                LOGGER.error("客户端：" + socket.getLocalAddress().getHostAddress() + "|" + socket.getPort() + "接收服务端消息失败");
+                LOGGER.error("客户端：" + socket.getLocalAddress().getHostAddress() + "|" + socket.getLocalPort() + "接收服务端消息失败");
             }
         }
     }

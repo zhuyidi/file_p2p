@@ -27,7 +27,7 @@ public class ClientCenter {
         try {
             socket = new Socket("127.0.0.1", 33000);
             hostAddress = socket.getLocalAddress().getHostAddress();
-            ResourceTable.updateResourceTableForOnline(hostAddress + "|" + socket.getPort(), configInfo);
+            ResourceTable.updateResourceTableForOnline(hostAddress + "|" + socket.getLocalPort(), configInfo);
             new ClientMainJFrame(socket, configInfo).initFrame();
         } catch (IOException e) {
             LOGGER.error("客户端：" + hostAddress + "连接服务端失败！");

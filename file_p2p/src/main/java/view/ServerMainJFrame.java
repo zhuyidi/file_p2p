@@ -17,7 +17,7 @@ public class ServerMainJFrame extends JFrame implements ActionListener {
         this.add(open);
         this.setBounds(400, 200, 100, 100);
         this.setVisible(true);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         open.addActionListener(this);
     }
     @Override

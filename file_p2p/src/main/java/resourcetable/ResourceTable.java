@@ -87,6 +87,28 @@ public class ResourceTable {
         return result;
     }
 
+    // 根据文件名获取持有本文件的端
+    public static Set<String> getClientsByFileName(String fileName) {
+        Set<String> result = jedis.smembers(fileName);
+        return result;
+    }
+
+    // 获取badClient
+    public static Set<String> getBadClients() {
+        Set<String> result = jedis.smembers("badClient");
+        return result;
+    }
+
+    // 根据文件名获取文件的信息：文件名&&文件大小
+    public static String getAllFileInfo(String fileName) {
+        return jedis.keys(fileName + "*").iterator().next();
+    }
+
+    public static void setBadClient(String clientId) {
+        jedis.sadd("badClient", clientId);
+
+    }
+
     private static void addClientIdInFileKey(String clientID, String fileName) {
         jedis.sadd(fileName, clientID);
     }

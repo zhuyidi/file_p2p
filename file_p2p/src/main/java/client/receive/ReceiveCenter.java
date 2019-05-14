@@ -1,13 +1,18 @@
 package client.receive;
 
 import model.ConfigInfo;
+import observer.IJoinFileListner;
+import observer.IJoinFileSpeaker;
 import observer.IReceiveSectionListener;
 import org.apache.log4j.Logger;
 import util.CloseUtil;
+import view.JoinCenter;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -16,17 +21,22 @@ import java.util.concurrent.TimeUnit;
  *  by yidi on 5/4/19
  */
 
-public class ReceiveCenter implements IReceiveSectionListener {
+public class ReceiveCenter implements IReceiveSectionListener, IJoinFileSpeaker {
     private static final Logger LOGGER = Logger.getLogger(ReceiveCenter.class);
     private ServerSocket serverSocket;
-    private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(1, 5, 30,TimeUnit.MINUTES,
+    private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(5, 10, 30,TimeUnit.MINUTES,
             new ArrayBlockingQueue<>(20), Thread::new, new ThreadPoolExecutor.AbortPolicy());
     private ConfigInfo configInfo;
+    public static final int PORT = 44000;
+    private int sendCount;
+    private int recvSctionCount = 0;
+    private List<IJoinFileListner> joinFileListners = new ArrayList<>();
 
-    public ReceiveCenter(ConfigInfo configInfo) {
+    public ReceiveCenter(ConfigInfo configInfo, int sendCount) {
         this.configInfo = configInfo;
+        this.sendCount = sendCount;
         try {
-            serverSocket = new ServerSocket(44000);
+            serverSocket = new ServerSocket(ReceiveCenter.PORT);
         } catch (IOException e) {
             LOGGER.error("客户端接收服务器建立失败，客户端信息：" + serverSocket.getLocalSocketAddress());
             close();
@@ -35,18 +45,24 @@ public class ReceiveCenter implements IReceiveSectionListener {
     }
 
     public void start() {
-        while (true) {
+        int tempCount = sendCount;
+        while (tempCount-- > 0) {
             // 等待客户端的连接
             String hostAddress = null;
             try{
                 Socket socket = serverSocket.accept();
                 hostAddress = socket.getLocalAddress().getHostAddress();
                 LOGGER.info("客户端：" + hostAddress + "连接成功");
-                threadPoolExecutor.execute(new ReceiveThread(socket, configInfo));
+                ReceiveThread receiveThread = new ReceiveThread(socket, configInfo);
+                receiveThread.addReceiveSectionListener(this);
+                threadPoolExecutor.execute(receiveThread);
+                JoinCenter joinCenter = new JoinCenter(configInfo);
+                joinFileListners.add(joinCenter);
             } catch (IOException e) {
                 LOGGER.error("客户端连接异常！客户端IP：" + hostAddress);
             }
         }
+        close();
     }
 
     private void close() {
@@ -55,8 +71,22 @@ public class ReceiveCenter implements IReceiveSectionListener {
     }
 
     @Override
-    public void onGetOneSection(long sectionLen) {
-        // 判断文件是否接收完，接收完的话，就关闭上面的临时服务器
-        // 如何判断一个文件接收完？暂时想法是通过接收到的长度和文件的总长度进行比较，判断文件是否接收完？可要是多个文件呢？
+    public void getRceiveOneSection(String fileName) {
+        recvSctionCount++;
+        if (recvSctionCount == sendCount) {
+            sendStartJoin(fileName, sendCount);
+        }
+    }
+
+    @Override
+    public void addJoinFileListener(IJoinFileListner iJoinFileListner) {
+        joinFileListners.add(iJoinFileListner);
+    }
+
+    @Override
+    public void sendStartJoin(String fileName, int sendCount) {
+        for (IJoinFileListner iJoinFileListner : joinFileListners) {
+            iJoinFileListner.getStartJoinFile(fileName, sendCount);
+        }
     }
 }

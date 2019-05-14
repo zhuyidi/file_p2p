@@ -12,5 +12,4 @@ import lombok.*;
 public class ConfigInfo {
     private String sendPath = "/Users/zhuyidi/sendFileData/";
     private String targetPath = "/Users/zhuyidi/recvFileData/";
-    private int bufferSize = 32768;
 }

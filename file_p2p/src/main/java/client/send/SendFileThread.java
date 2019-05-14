@@ -1,12 +1,14 @@
 package client.send;
 
 import model.ConfigInfo;
-import org.apache.commons.lang3.StringUtils;
+import model.FileTaskInfo;
 import org.apache.log4j.Logger;
 import util.CloseUtil;
+import util.PackageUtil;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ResourceBundle;
 
 /**
  * by yidi on 3/18/19
@@ -22,15 +24,22 @@ public class SendFileThread implements Runnable {
     private String hostAdress;
     private byte[] buffer;
     private ConfigInfo configInfo;
+    private FileTaskInfo fileTaskInfo;
+    private final int BUFFER_SIZE = Integer.parseInt(ResourceBundle.getBundle("file-config").getString("bufferSize"));
 
-    public SendFileThread(Socket socket, ConfigInfo configInfo) {
+    public SendFileThread(String host, int port, ConfigInfo configInfo, FileTaskInfo fileTaskInfo) {
+        try {
+            socket = new Socket(host, port);
+        } catch (IOException e) {
+            LOGGER.error("发送端连接接收端失败");
+        }
         this.configInfo = configInfo;
-        buffer = new byte[configInfo.getBufferSize()];
-        init(socket);
+        this.fileTaskInfo = fileTaskInfo;
+        buffer = new byte[BUFFER_SIZE];
+        init();
     }
 
-    private void init(Socket socket) {
-        this.socket = socket;
+    private void init() {
         hostAdress = socket.getLocalAddress().getHostAddress();
         try {
             dataInputStream = new DataInputStream(socket.getInputStream());
@@ -44,50 +53,43 @@ public class SendFileThread implements Runnable {
 
     @Override
     public void run() {
-        String fileName;
-        Long fileLen;
-        // 服务端处理线程
         try {
-            fileName = dataInputStream.readUTF();
-            System.out.println("文件名：" + fileName);
-            if (StringUtils.isEmpty(fileName)) {
-                close(this);
-            }
+            dataOutputStream.writeUTF(PackageUtil.packageFileTask(fileTaskInfo));
         } catch (IOException e) {
-            LOGGER.error("接收客户端：" + hostAdress + "文件名失败");
-            return;
+            LOGGER.error("发送端发送任务头失败");
         }
-        String filePath = configInfo.getSendPath() + fileName;
+        String path = configInfo.getSendPath() + fileTaskInfo.getTargetFilename();
+        File testFile = new File(path);
+        if (!testFile.exists()) {
+            path = configInfo.getTargetPath() + fileTaskInfo.getTargetFilename();
+        }
+
         RandomAccessFile file;
+        long fileLen = fileTaskInfo.getSectionLen();
         try {
-            file = new RandomAccessFile(filePath, "rw");
-            fileLen = file.length();
-            LOGGER.info("发送端传送文件：" + fileName + ", 客户端信息：" + hostAdress);
+            file = new RandomAccessFile(path, "rw");
+            file.seek(fileTaskInfo.getOffSet());
         } catch (Exception e) {
             LOGGER.error("发送端打开文件流失败, 客户端信息：" + hostAdress);
             return;
         }
-        try {
-            dataOutputStream.writeLong(fileLen);
-        } catch (IOException e) {
-            LOGGER.error("发送文件大小失败，客户端信息：" + hostAdress);
-            return;
-        }
+
         while (fileLen > 0) {
             try {
-                fileLen -= file.read(buffer, 0, configInfo.getBufferSize());
+                fileLen -= file.read(buffer, 0, BUFFER_SIZE);
             } catch (IOException e) {
                 LOGGER.error("发送端读取文件内容失败，客户端信息：" + hostAdress);
                 return;
             }
             try {
-                outputStream.write(buffer, 0, configInfo.getBufferSize());
+                outputStream.write(buffer, 0, BUFFER_SIZE);
                 outputStream.flush();
             } catch (IOException e) {
                 LOGGER.error("发送端发送文件内容失败，客户端信息：" + hostAdress);
                 return;
             }
         }
+        close(this);
     }
 
     public static void close(SendFileThread sendFileThread) {

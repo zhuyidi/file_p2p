@@ -4,11 +4,13 @@ import org.apache.log4j.Logger;
 import resourcetable.ResourceTable;
 import util.CloseUtil;
 import util.NodeTypeEnum;
+import view.ServerMainJFrame;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -20,10 +22,10 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ServerCenter {
     private static final Logger LOGGER = Logger.getLogger(ServerCenter.class);
     private static ServerSocket serverSocket;
-    private static final ThreadPoolExecutor THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(1, 5, 30, TimeUnit.MINUTES,
+    private static final ThreadPoolExecutor THREAD_POOL_EXECUTOR = new ThreadPoolExecutor(5, 10, 30, TimeUnit.MINUTES,
             new ArrayBlockingQueue<>(20), Thread::new, new ThreadPoolExecutor.AbortPolicy());
     private static AtomicLong ClientId = new AtomicLong(1L);
-
+    public static ConcurrentHashMap<String, Socket> clientInfoMap = new ConcurrentHashMap<>();
     static {
         try {
             serverSocket = new ServerSocket(33000);
@@ -35,6 +37,7 @@ public class ServerCenter {
     }
 
     public void start() {
+        new ServerMainJFrame();
         while (true) {
             // 等待客户端的连接
             String hostAddress = null;
@@ -43,9 +46,11 @@ public class ServerCenter {
             try{
                 socket = serverSocket.accept();
                 hostAddress = socket.getLocalAddress().getHostAddress();
-                port = String.valueOf(socket.getLocalPort());
+                port = String.valueOf(socket.getPort());
+                long id = ClientId.getAndIncrement();
                 LOGGER.info("客户端：" + hostAddress + "连接成功");
-                ClientInfoDTO clientInfoDTO = new ClientInfoDTO(NodeTypeEnum.CLIENT.getCode(), socket, ClientId.getAndIncrement(), hostAddress, port);
+                clientInfoMap.put(String.valueOf(id), socket);
+                ClientInfoDTO clientInfoDTO = new ClientInfoDTO(NodeTypeEnum.CLIENT.getCode(), socket, id, hostAddress, port);
                 init(clientInfoDTO);
                 THREAD_POOL_EXECUTOR.execute(new ServerThread(clientInfoDTO));
             } catch (IOException e) {
