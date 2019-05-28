@@ -29,8 +29,9 @@ public class ResourceTable {
     // action1: 在clientInfo key中，注册这个客户端的信息，格式：<host|post, clientID>
     // action2: 创建这个客户端的资源列表，格式: <clientID, fileName1 filename2...>
     @Retryable
-    public static boolean registerClientInRedis(ClientInfoDTO clientInfoDTO) {
+    public static synchronized boolean registerClientInRedis(ClientInfoDTO clientInfoDTO) {
         // 注册IP信息
+        System.out.println("开始注册客户端：" + clientInfoDTO.getClientId());
         String key = clientInfoDTO.getHost() + "|" + clientInfoDTO.getPort();
         Map<String, String> clientInfo = new HashMap<>();
         clientInfo.put(key, String.valueOf(clientInfoDTO.getClientId()));
@@ -40,11 +41,12 @@ public class ResourceTable {
             LOGGER.error("客户端：" + clientInfoDTO.getHost() + "上线信息注册失败");
             return false;
         }
+        System.out.println("成功注册客户端：" + clientInfoDTO.getClientId());
         return true;
     }
 
     // 客户端上线更新fileName key的value
-    public static boolean updateResourceTableForOnline(String clientHost, ConfigInfo configInfo) {
+    public static synchronized boolean updateResourceTableForOnline(String clientHost, ConfigInfo configInfo) {
         Set<String> fileNames;
         try {
             fileNames = FileUtil.getClientResource(configInfo);
@@ -53,12 +55,20 @@ public class ResourceTable {
             return false;
         }
         String clientID = jedis.hmget("clientInfo", clientHost).get(0);
+        System.out.println("clientHost:" + clientHost);
+        System.out.println("configInfo:" + configInfo);
+        System.out.println("fileNames:" + fileNames);
+        System.out.println("clientID:" + clientID);
         try {
             fileNames.stream().forEach(e -> {
+                System.out.println("clientHost:" + clientHost);
+                System.out.println("clientId:" + clientID);
+                System.out.println("fileName:" + e);
                 jedis.sadd(clientID, e);
                 addClientIdInFileKey(clientID, e);
             });
         } catch (Exception e) {
+            System.out.println("客户端：" + clientHost + "更新fileName key的value失败 " + e.getMessage());
             LOGGER.error("客户端：" + clientHost + "更新fileName key的value失败 " + e.getMessage());
             return false;
         }
@@ -66,7 +76,7 @@ public class ResourceTable {
     }
 
     // 客户端下线更新资源信息
-    public static boolean updateResourceTableForOffline(String clientHost) {
+    public static synchronized boolean updateResourceTableForOffline(String clientHost) {
         try {
             String clientID = jedis.hmget("clientInfo", clientHost).get(0);
             jedis.hdel("clientInfo", clientHost);
@@ -80,7 +90,7 @@ public class ResourceTable {
     }
 
     // 客户端根据keyword模糊查询资源表
-    public static Set<String> queryFileNameByKeyword(String keyWord) {
+    public static synchronized Set<String> queryFileNameByKeyword(String keyWord) {
         String[] tempStr = keyWord.split("");
         String kw = "*" + Arrays.stream(tempStr).map(e -> e+"*").reduce("", String::concat);
         Set<String> result = jedis.keys(kw);
@@ -88,13 +98,13 @@ public class ResourceTable {
     }
 
     // 根据文件名获取持有本文件的端
-    public static Set<String> getClientsByFileName(String fileName) {
+    public static synchronized Set<String> getClientsByFileName(String fileName) {
         Set<String> result = jedis.smembers(fileName);
         return result;
     }
 
     // 获取badClient
-    public static Set<String> getBadClients() {
+    public static synchronized Set<String> getBadClients() {
         Set<String> result = jedis.smembers("badClient");
         return result;
     }

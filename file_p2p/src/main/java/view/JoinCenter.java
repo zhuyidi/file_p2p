@@ -2,10 +2,12 @@ package view;
 
 import model.ConfigInfo;
 import observer.IJoinFileListner;
+import resourcetable.ResourceTable;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.net.Socket;
 import java.util.ResourceBundle;
 
 /**
@@ -16,9 +18,10 @@ public class JoinCenter implements IJoinFileListner {
     private ConfigInfo configInfo;
     private byte[] buffer;
     private final int BUFFER_SIZE = Integer.parseInt(ResourceBundle.getBundle("file-config").getString("bufferSize"));
+    private Socket socket;
 
-
-    public JoinCenter(ConfigInfo configInfo) {
+    public JoinCenter(Socket socket, ConfigInfo configInfo) {
+        this.socket = socket;
         this.configInfo = configInfo;
         buffer = new byte[BUFFER_SIZE];
     }
@@ -47,9 +50,11 @@ public class JoinCenter implements IJoinFileListner {
                 }
                 tempFile.close();
                 File delFile = new File(tempFileName);
-                delFile.delete();
+//                delFile.delete();
                 System.out.println("临时文件已删除");
             }
+            ResourceTable.updateResourceTableForOnline(socket.getLocalAddress().getHostAddress() +
+                    "|" + socket.getLocalPort(), configInfo);
             file.close();
         } catch (Exception e) {
             System.out.println("合并出错2：" + e.getMessage());

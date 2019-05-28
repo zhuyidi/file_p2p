@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *  by yidi on 5/4/19
@@ -27,16 +28,18 @@ public class ReceiveCenter implements IReceiveSectionListener, IJoinFileSpeaker 
     private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(5, 10, 30,TimeUnit.MINUTES,
             new ArrayBlockingQueue<>(20), Thread::new, new ThreadPoolExecutor.AbortPolicy());
     private ConfigInfo configInfo;
-    public static final int PORT = 44000;
+    private Socket socket;
+    public static AtomicInteger PORT = new AtomicInteger(44000);
     private int sendCount;
     private int recvSctionCount = 0;
     private List<IJoinFileListner> joinFileListners = new ArrayList<>();
 
-    public ReceiveCenter(ConfigInfo configInfo, int sendCount) {
+    public ReceiveCenter(ConfigInfo configInfo, int sendCount, Socket socket) {
         this.configInfo = configInfo;
         this.sendCount = sendCount;
+        this.socket = socket;
         try {
-            serverSocket = new ServerSocket(ReceiveCenter.PORT);
+            serverSocket = new ServerSocket(ReceiveCenter.PORT.getAndIncrement());
         } catch (IOException e) {
             LOGGER.error("客户端接收服务器建立失败，客户端信息：" + serverSocket.getLocalSocketAddress());
             close();
@@ -56,7 +59,7 @@ public class ReceiveCenter implements IReceiveSectionListener, IJoinFileSpeaker 
                 ReceiveThread receiveThread = new ReceiveThread(socket, configInfo);
                 receiveThread.addReceiveSectionListener(this);
                 threadPoolExecutor.execute(receiveThread);
-                JoinCenter joinCenter = new JoinCenter(configInfo);
+                JoinCenter joinCenter = new JoinCenter(this.socket, configInfo);
                 joinFileListners.add(joinCenter);
             } catch (IOException e) {
                 LOGGER.error("客户端连接异常！客户端IP：" + hostAddress);
@@ -71,7 +74,7 @@ public class ReceiveCenter implements IReceiveSectionListener, IJoinFileSpeaker 
     }
 
     @Override
-    public void getRceiveOneSection(String fileName) {
+    public void getReceiveOneSection(String fileName) {
         recvSctionCount++;
         if (recvSctionCount == sendCount) {
             sendStartJoin(fileName, sendCount);

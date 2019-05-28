@@ -1,6 +1,5 @@
 package resourcetable.allocationpolicy;
 
-import model.ConfigInfo;
 import model.FileTaskInfo;
 import org.apache.log4j.Logger;
 
@@ -18,7 +17,7 @@ public class AllocationPolicy {
     private static final long SECTION_SIZE = Long.parseLong(ResourceBundle.getBundle("file-config").getString("sectionSize"));
 
     // 当客户端请求文件的时候，选出发送端
-    public static List<FileTaskInfo> allocationPolicy(String filename, long fileLen, Set<String> clients) {
+    public static List<FileTaskInfo> allocationPolicyForClient(String filename, long fileLen, Set<String> clients) {
         List<FileTaskInfo> result = new ArrayList<>();
         int sectionNum = 1;
         long offSet = 0L;
@@ -53,6 +52,18 @@ public class AllocationPolicy {
                     , overLen >= sectionSize ? sectionSize : overLen, sectionNum++);
             overLen -= sectionSize;
             result.add(fileTaskInfo);
+        }
+        return result;
+    }
+
+    // 当服务端下发一批文件时的分配策略
+    public static List<FileTaskInfo> allocationPolicyForServer(String fileName, long fileLen, Set<String> clients) {
+        List<FileTaskInfo> result = new ArrayList<>();
+        // 如果没有备选客户端可以发送这个文件，那么全部由server来发送
+        if (clients == null || clients.size() == 0) {
+            FileTaskInfo fileTaskInfo = new FileTaskInfo("-1", fileName, 0, fileLen, 1);
+            result.add(fileTaskInfo);
+            return result;
         }
         return result;
     }

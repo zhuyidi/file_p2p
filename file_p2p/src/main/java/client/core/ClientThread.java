@@ -46,7 +46,7 @@ public class ClientThread implements Runnable {
                 strMessage = inputStream.readUTF();
                 System.out.println("client message:" + strMessage);
                 MessageInfo message = ParseUtil.parseMessage(strMessage);
-                DealMessageForClient.deal(message, configInfo);
+                DealMessageForClient.deal(message, configInfo, socket);
             } catch (IOException e) {
                 LOGGER.error("客户端：" + socket.getLocalAddress().getHostAddress() + "|" + socket.getLocalPort() + "接收服务端消息失败");
             }

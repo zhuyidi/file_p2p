@@ -37,7 +37,7 @@ public class ServerCenter {
     }
 
     public void start() {
-        new ServerMainJFrame();
+//        new ServerMainJFrame();
         while (true) {
             // 等待客户端的连接
             String hostAddress = null;
@@ -48,7 +48,7 @@ public class ServerCenter {
                 hostAddress = socket.getLocalAddress().getHostAddress();
                 port = String.valueOf(socket.getPort());
                 long id = ClientId.getAndIncrement();
-                LOGGER.info("客户端：" + hostAddress + "连接成功");
+                LOGGER.info("客户端：" + hostAddress + "|" + port + "连接成功");
                 clientInfoMap.put(String.valueOf(id), socket);
                 ClientInfoDTO clientInfoDTO = new ClientInfoDTO(NodeTypeEnum.CLIENT.getCode(), socket, id, hostAddress, port);
                 init(clientInfoDTO);

@@ -26,6 +26,8 @@ public class ClientCenter {
         String hostAddress = null;
         try {
             socket = new Socket("127.0.0.1", 33000);
+            System.out.println("host:" + socket.getLocalAddress().getHostAddress() + ", port:" + socket.getPort()
+                    + ", localPort" + socket.getLocalPort());
             hostAddress = socket.getLocalAddress().getHostAddress();
             ResourceTable.updateResourceTableForOnline(hostAddress + "|" + socket.getLocalPort(), configInfo);
             new ClientMainJFrame(socket, configInfo).initFrame();

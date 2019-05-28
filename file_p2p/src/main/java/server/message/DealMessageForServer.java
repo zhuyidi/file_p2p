@@ -37,7 +37,7 @@ public class DealMessageForServer {
         clients.removeAll(ResourceTable.getBadClients());
 
         // 决定分配策略
-        List<FileTaskInfo> taskResult = AllocationPolicy.allocationPolicy(
+        List<FileTaskInfo> taskResult = AllocationPolicy.allocationPolicyForClient(
                 messageInfo.getMessageContent(), fileLen, clients);
 
         // 向请求端通知有几个端要去执行发送任务

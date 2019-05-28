@@ -8,6 +8,8 @@ import org.apache.log4j.Logger;
 import server.message.ServerMessageEnum;
 import util.ParseUtil;
 
+import java.net.Socket;
+
 
 /**
  *  by yidi on 5/8/19
@@ -16,12 +18,12 @@ import util.ParseUtil;
 public class DealMessageForClient {
     private static final Logger LOGGER = Logger.getLogger(DealMessageForClient.class);
 
-    public static void deal(MessageInfo messageInfo, ConfigInfo configInfo) {
+    public static void deal(MessageInfo messageInfo, ConfigInfo configInfo, Socket socket) {
         // 来自服务端的任务分配消息
         if (messageInfo.getAction() == ServerMessageEnum.FILE_TASK.getCode()) {
             dealFileTask(messageInfo, configInfo);
         } else if (messageInfo.getAction() == ServerMessageEnum.NOTICE_SEND_COUNT.getCode()) {
-            dealNoticeSendCount(messageInfo, configInfo);
+            dealNoticeSendCount(messageInfo, configInfo, socket);
         }
     }
 
@@ -34,8 +36,8 @@ public class DealMessageForClient {
 
     }
 
-    private static void dealNoticeSendCount(MessageInfo messageInfo, ConfigInfo configInfo) {
+    private static void dealNoticeSendCount(MessageInfo messageInfo, ConfigInfo configInfo, Socket socket) {
         int sendCount = Integer.parseInt(messageInfo.getMessageContent());
-        new ReceiveCenter(configInfo, sendCount).start();
+        new ReceiveCenter(configInfo, sendCount, socket).start();
     }
 }

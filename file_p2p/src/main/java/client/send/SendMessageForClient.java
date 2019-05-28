@@ -19,7 +19,7 @@ public class SendMessageForClient {
         try {
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
             String strMessage = PackageUtil.packageMessage(messageInfo);
-//            System.out.println("client message: " + strMessage);
+            System.out.println("client message: " + strMessage);
             dataOutputStream.writeUTF(strMessage);
         } catch (IOException e) {
             LOGGER.error("客户端输出流获取失败，无法发送消息。客户端信息：" + socket.getLocalAddress().getHostAddress() + "|" + socket.getLocalPort());

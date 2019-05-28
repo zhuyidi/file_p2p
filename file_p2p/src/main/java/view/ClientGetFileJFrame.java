@@ -66,7 +66,7 @@ public class ClientGetFileJFrame {
     private void choose() {
         choose.addActionListener(evn -> {
             MessageInfo messageInfo = new MessageInfo(NodeTypeEnum.CLIENT.getCode(),
-                    socket.getLocalAddress().getHostAddress() + "|" + ReceiveCenter.PORT, NodeTypeEnum.SERVER.getCode(), "",
+                    socket.getLocalAddress().getHostAddress() + "|" + ReceiveCenter.PORT.get(), NodeTypeEnum.SERVER.getCode(), "",
                     ClientMessageEnum.REQUEST.getCode(), fileList.getSelectedValue());
             System.out.println(fileList.getSelectedValue());
             SendMessageForClient.sendMessage(messageInfo, socket);

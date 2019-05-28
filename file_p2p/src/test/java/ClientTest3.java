@@ -1,14 +1,10 @@
 import client.core.ClientCenter;
 import model.ConfigInfo;
 
-/**
- *  by yidi on 5/13/19
- */
-
-public class ClientTest2 {
+public class ClientTest3 {
     public static void main(String[] args) {
         ClientCenter clientCenter = new ClientCenter(new ConfigInfo(
-                "/Users/zhuyidi/sendFileData/client6/", "/Users/zhuyidi/recvFileData/client6/"));
+                "/Users/zhuyidi/sendFileData/client7/", "/Users/zhuyidi/recvFileData/client7/"));
 
     }
 }

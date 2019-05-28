@@ -11,11 +11,12 @@ import java.util.Set;
 
 public class FileUtilTest {
     public static void main(String[] args) {
-        ClientInfoDTO clientInfoDTO = new ClientInfoDTO("127.0.0.1", "33000");
-        System.out.println(clientInfoDTO.getType() + " " + clientInfoDTO.getPort() + clientInfoDTO.getHost());
+//        ClientInfoDTO clientInfoDTO = new ClientInfoDTO("127.0.0.1", "33000");
+//        System.out.println(clientInfoDTO.getType() + " " + clientInfoDTO.getPort() + clientInfoDTO.getHost());
         Set<String> result = null;
         try {
-            result = FileUtil.getClientResource(new ConfigInfo());
+            result = FileUtil.getClientResource(new ConfigInfo(
+                    "/Users/zhuyidi/sendFileData/client6/", "/Users/zhuyidi/recvFileData/client6/"));
         } catch (IOException e) {}
         result.forEach(System.out::println);
     }

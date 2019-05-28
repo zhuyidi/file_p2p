@@ -33,6 +33,7 @@ public class ServerMainJFrame extends JFrame implements ActionListener {
             System.out.println("文件:"+file.getAbsolutePath());
         }
         System.out.println(jfc.getSelectedFile().getName());
+        System.out.println(jfc.getSelectedFile().getPath());
     }
 
     public static void main(String[] args) {

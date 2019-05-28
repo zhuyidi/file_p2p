@@ -103,8 +103,10 @@ public class ReceiveThread implements Runnable, IReceiveSectionSpeaker {
 
     @Override
     public void sendGetOneSection(String fileName) {
+        System.out.println("sendGetOneSection");
+        System.out.println(listeners);
         for (IReceiveSectionListener listener : listeners) {
-            listener.getRceiveOneSection(fileName);
+            listener.getReceiveOneSection(fileName);
         }
     }
 }

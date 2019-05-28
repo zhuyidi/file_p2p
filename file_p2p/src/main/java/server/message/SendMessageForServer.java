@@ -19,13 +19,15 @@ public class SendMessageForServer {
     public static void sendMessage(Socket socket, String clientId, MessageInfo messageInfo) {
         Socket targetSocket = socket;
         if (targetSocket == null) {
-            socket = ServerCenter.clientInfoMap.get(clientId);
+            targetSocket = ServerCenter.clientInfoMap.get(clientId);
+            System.out.println(clientId);
+            System.out.println(ServerCenter.clientInfoMap);
         }
         try {
-            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            DataOutputStream dataOutputStream = new DataOutputStream(targetSocket.getOutputStream());
             dataOutputStream.writeUTF(PackageUtil.packageMessage(messageInfo));
         } catch (IOException e) {
-            LOGGER.error("向客户端发送消息失败， 客户端信息：" + socket.getLocalAddress() + "|" + socket.getPort());
+            LOGGER.error("向客户端发送消息失败， 客户端信息：" + targetSocket.getLocalAddress() + "|" + targetSocket.getPort());
         }
     }
 }

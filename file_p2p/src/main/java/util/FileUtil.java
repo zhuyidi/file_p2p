@@ -22,7 +22,7 @@ public class FileUtil {
         String sendPath = configInfo.getSendPath();
         String targetPath = configInfo.getTargetPath();
         Set<String> result = getFileName(sendPath);
-        result.containsAll(getFileName(targetPath));
+        result.addAll(getFileName(targetPath));
         return result;
     }
 
